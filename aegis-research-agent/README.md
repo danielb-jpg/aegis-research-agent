@@ -4,7 +4,7 @@ An AI research agent that takes any topic, searches the live web, reads what it 
 
 Runs entirely on free tiers: DuckDuckGo search (no key) and Google Gemini's free API (no card).
 
-![Dashboard with reasoning log](screenshots/dashboard.png)
+![Dashboard with reasoning log](Screenshots/dashboard.png)
 
 ## What it does
 
@@ -13,9 +13,9 @@ Runs entirely on free tiers: DuckDuckGo search (no key) and Google Gemini's free
 3. It reads the results and writes a summary with an **Overview**, **Key Findings**, and a **Confidence Note**.
 4. The dashboard shows each step as it happens, then the summary and clickable source cards.
 
-![Structured summary and source cards](screenshots/summary.png)
+![Structured summary and source cards](Screenshots/summary.png)
 
-![Sources consulted with trust scores](screenshots/Summary1.PNG)
+![Sources consulted with trust scores](Screenshots/Summary1.PNG)
 
 ## How it works
 
