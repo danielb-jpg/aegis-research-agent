@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Aegis — Research Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0D14; --bg2:#0F1420; --panel:rgba(255,255,255,0.035);
+  --border:rgba(255,255,255,0.08); --border-glow:rgba(94,163,255,0.35);
+  --text:#E7ECF5; --muted:#8B94A8;
+  --cyan:#5EF0D8; --violet:#8B7CFF; --blue:#5EA3FF;
+  --amber:#F0B95E; --red:#F06A5E;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; min-height:100vh; background:
+    radial-gradient(ellipse 900px 500px at 15% -5%, rgba(139,124,255,0.16), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 90% 10%, rgba(94,240,216,0.10), transparent 55%),
+    var(--bg);
+  color:var(--text); font-family:'Inter',sans-serif; line-height:1.55;
+  padding: env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0);
+}
+.wrap{max-width:1000px; margin:0 auto; padding:0 24px;}
+header{padding:36px 0 8px;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Space Grotesk'; font-weight:700; font-size:1.15rem;}
+.brand-dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);}
+.eyebrow{font-size:0.78rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--violet); margin:22px 0 8px;}
+h1{font-family:'Space Grotesk'; font-weight:700; font-size:clamp(1.8rem,4vw,2.5rem); margin:0 0 10px; max-width:20ch;}
+.sub{color:var(--muted); max-width:52ch; margin:0 0 30px; font-size:0.98rem;}
+
+.glass{
+  background:var(--panel); border:1px solid var(--border); border-radius:14px;
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+}
+
+.input-row{display:flex; gap:10px; padding:14px; margin-bottom:26px; flex-wrap:wrap;}
+#topic{
+  flex:1; min-width:220px; background:rgba(255,255,255,0.05);
+  border:1.5px solid var(--border-glow); border-radius:9px; outline:none;
+  color:var(--text); font-family:inherit; font-size:1rem; padding:12px 14px;
+  transition:border-color .2s ease, background .2s ease;
+}
+#topic:focus{border-color:var(--cyan); background:rgba(255,255,255,0.08);}
+#topic::placeholder{color:var(--muted);}
+#runBtn{
+  background:linear-gradient(135deg,var(--violet),var(--blue)); color:#fff; border:none;
+  padding:12px 24px; border-radius:10px; font-weight:600; font-size:0.92rem; cursor:pointer;
+  box-shadow:0 0 0 rgba(139,124,255,0); transition:box-shadow .25s ease, transform .15s ease;
+}
+#runBtn:hover{box-shadow:0 6px 26px rgba(139,124,255,0.45); transform:translateY(-1px);}
+#runBtn:disabled{opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none;}
+
+.panel-head{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--border); font-size:0.82rem; letter-spacing:0.04em; color:var(--muted);}
+.panel-head .live{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+#logPanel{margin-bottom:22px; min-height:60px;}
+#logBody{font-family:'JetBrains Mono',monospace; font-size:0.85rem; padding:18px 20px; min-height:40px;}
+.log-line{opacity:0; transform:translateY(6px); animation:logIn .35s ease forwards; margin-bottom:9px; display:flex; gap:10px;}
+@keyframes logIn{to{opacity:1; transform:translateY(0);}}
+.log-tag{color:var(--cyan); flex-shrink:0;}
+.log-line.done .log-tag{color:var(--muted);}
+.log-detail{color:var(--muted); font-size:0.78rem; margin-left:24px; margin-top:-4px; margin-bottom:9px;}
+
+.empty-state{padding:40px 20px; text-align:center; color:var(--muted); font-size:0.9rem;}
+
+#results{display:none;}
+.summary-panel{padding:26px 26px 8px; margin-bottom:22px;}
+.summary-panel h2{font-family:'Space Grotesk'; font-size:1.3rem; margin:0 0 14px; display:flex; align-items:center; gap:10px;}
+.summary-panel h2::before{content:"◆"; color:var(--cyan); font-size:0.9rem;}
+.summary-body p{color:#C9D0DE; font-size:0.94rem; margin:0 0 14px;}
+.summary-body h3{font-family:'Space Grotesk'; font-size:1rem; margin:20px 0 10px; color:var(--text);}
+.summary-body ul{margin:0 0 14px; padding-left:20px; color:#C9D0DE; font-size:0.92rem;}
+.summary-body li{margin-bottom:7px;}
+.cite{color:var(--blue); font-size:0.78rem; vertical-align:super;}
+
+.sources-head{padding:20px 26px 4px; font-size:0.82rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted);}
+.source-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; padding:14px 26px 26px;}
+.source-card{
+  display:block; color:inherit; text-decoration:none; cursor:pointer;
+  background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:16px;
+  opacity:0; transform:translateY(14px); transition:border-color .2s ease;
+}
+.source-card.visible{animation:cardIn .5s ease forwards;}
+@keyframes cardIn{to{opacity:1; transform:translateY(0);}}
+.source-card:hover{border-color:var(--border-glow);}
+.source-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px;}
+.source-name{font-weight:600; font-size:0.9rem;}
+.source-domain{font-size:0.76rem; color:var(--muted); margin-top:2px;}
+.trust{display:flex; align-items:center; gap:6px; font-size:0.75rem; font-weight:600;}
+.trust-bar{width:44px; height:5px; border-radius:3px; background:rgba(255,255,255,0.1); overflow:hidden;}
+.trust-fill{height:100%; border-radius:3px;}
+
+footer{padding:30px 0 50px; text-align:center; color:var(--muted); font-size:0.82rem;}
+
+@media(max-width:640px){
+  .source-grid{grid-template-columns:1fr;}
+  .input-row{flex-direction:column;}
+  #runBtn{width:100%;}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="brand-dot"></span>Aegis Research Agent</div>
+  </header>
+
+  <div class="eyebrow">Agentic AI · Demo</div>
+  <h1>Give it a topic. Watch it think, search, and write.</h1>
+  <p class="sub">A simulated research pipeline — query parsing, multi-source retrieval, cross-referencing, and structured synthesis, shown step by step.</p>
+
+  <div class="glass input-row">
+    <input id="topic" type="text" placeholder="e.g. Impact of remote work on Lagos real estate">
+    <button id="runBtn">Run Agent</button>
+  </div>
+
+  <div class="glass" id="logPanel">
+    <div class="panel-head"><span class="live" id="liveDot" style="opacity:0.2"></span>REASONING LOG</div>
+    <div id="logBody"><div class="empty-state">Enter a topic and click "Run Agent" to begin.</div></div>
+  </div>
+
+  <div id="results">
+    <div class="glass summary-panel">
+      <h2>Structured Summary</h2>
+      <div class="summary-body" id="summaryBody"></div>
+    </div>
+    <div class="glass">
+      <div class="sources-head">Sources Consulted</div>
+      <div class="source-grid" id="sourceGrid"></div>
+    </div>
+  </div>
+
+  <footer>Built by Daniel — Digital Solutions Architect · Real search + LLM synthesis via Python backend</footer>
+</div>
+
+<script>
+const API_URL = 'http://localhost:5000/api/research';
+
+// Fallback demo content — used ONLY if the backend isn't reachable,
+// so the page still shows something rather than erroring out.
+const DEMO_STEPS = [
+  { text:'Parsing query intent and key entities...' },
+  { text:'Searching web sources...', detail:'Backend not reachable — showing cached demo output.' },
+  { text:'Cross-referencing and extracting key claims...' },
+  { text:'Synthesizing structured summary...' },
+  { text:'Report ready.' },
+];
+const DEMO_SUMMARY = `## Overview
+This is demo content — the backend server isn't running, so no real search happened.
+
+## Key Findings
+- Start the backend (see README) to get a real, live-researched answer for your topic.
+- This fallback exists so the page never just breaks with a blank screen.
+
+## Confidence Note
+None — this is placeholder text, not a researched finding.`;
+const DEMO_SOURCES = [
+  { title: 'Backend not connected', url: '#', trust: 0 },
+];
+
+function trustColor(v){
+  if (v >= 80) return 'linear-gradient(90deg,#5EF0D8,#5EA3FF)';
+  if (v >= 65) return 'linear-gradient(90deg,#F0B95E,#F0D85E)';
+  return 'linear-gradient(90deg,#F06A5E,#F0A05E)';
+}
+
+// Tiny markdown-ish renderer for the summary — headings, bullets, paragraphs.
+// Not a full markdown parser, just enough for the agent's own output shape.
+function inlineFormat(text) {
+  // Convert **bold** to <strong>, escape nothing else — Gemini's output
+  // is plain enough that this covers what actually shows up.
+  return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+
+function renderSummary(md) {
+  const lines = md.split('\n');
+  let html = '';
+  let inList = false;
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith('## ')) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<h3>${inlineFormat(line.slice(3))}</h3>`;
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += `<li>${inlineFormat(line.slice(2))}</li>`;
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<p>${inlineFormat(line)}</p>`;
+    }
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+
+const btn = document.getElementById('runBtn');
+const logBody = document.getElementById('logBody');
+const liveDot = document.getElementById('liveDot');
+const results = document.getElementById('results');
+const summaryBody = document.getElementById('summaryBody');
+const sourceGrid = document.getElementById('sourceGrid');
+
+function addLogLine(text, detail, isFinal) {
+  const line = document.createElement('div');
+  line.className = 'log-line' + (isFinal ? ' done' : '');
+  const stepNum = logBody.querySelectorAll('.log-line').length + 1;
+  line.innerHTML = `<span class="log-tag">[${String(stepNum).padStart(2,'0')}]</span><span></span>`;
+  line.querySelector('span:last-child').textContent = text;
+  logBody.appendChild(line);
+  if (detail) {
+    const d = document.createElement('div');
+    d.className = 'log-detail';
+    d.textContent = '→ ' + detail;
+    logBody.appendChild(d);
+  }
+  logBody.scrollTop = logBody.scrollHeight;
+}
+
+function renderResults(summary, sources) {
+  liveDot.style.opacity = '0.2';
+  btn.disabled = false;
+  results.style.display = 'block';
+  summaryBody.innerHTML = renderSummary(summary);
+
+  sourceGrid.innerHTML = '';
+  sources.forEach((s, i) => {
+    const hasRealUrl = s.url && s.url !== '#';
+    const card = document.createElement(hasRealUrl ? 'a' : 'div');
+    card.className = 'source-card';
+    if (hasRealUrl) {
+      card.href = s.url;
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+    }
+    const domain = hasRealUrl ? new URL(s.url).hostname.replace('www.', '') : 'n/a';
+    card.innerHTML = `
+      <div class="source-top">
+        <div>
+          <div class="source-name">${s.title}</div>
+          <div class="source-domain">${domain}</div>
+        </div>
+        <div class="trust">
+          <span>${s.trust}%</span>
+          <div class="trust-bar"><div class="trust-fill" style="width:${s.trust}%; background:${trustColor(s.trust)}"></div></div>
+        </div>
+      </div>
+    `;
+    sourceGrid.appendChild(card);
+    setTimeout(() => card.classList.add('visible'), i * 110);
+  });
+
+  results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function runReal(topic) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ topic }),
+  });
+  if (!res.ok || !res.body) throw new Error('Backend returned an error');
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const chunks = buffer.split('\n\n');
+    buffer = chunks.pop();
+
+    for (const chunk of chunks) {
+      const line = chunk.split('\n').find(l => l.startsWith('data: '));
+      if (!line) continue;
+      const event = JSON.parse(line.slice(6));
+
+      if (event.type === 'log') {
+        addLogLine(event.text, event.detail, event.step >= 5);
+      } else if (event.type === 'error') {
+        addLogLine('Error: ' + event.text, null, true);
+        btn.disabled = false;
+        liveDot.style.opacity = '0.2';
+        return;
+      } else if (event.type === 'result') {
+        renderResults(event.summary, event.sources);
+      }
+    }
+  }
+}
+
+function runDemo(topic) {
+  DEMO_STEPS.forEach((step, i) => {
+    setTimeout(() => {
+      addLogLine(step.text, step.detail, i === DEMO_STEPS.length - 1);
+      if (i === DEMO_STEPS.length - 1) {
+        setTimeout(() => renderResults(DEMO_SUMMARY, DEMO_SOURCES), 400);
+      }
+    }, i * 500);
+  });
+}
+
+btn.addEventListener('click', async () => {
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) return;
+
+  btn.disabled = true;
+  liveDot.style.opacity = '1';
+  results.style.display = 'none';
+  logBody.innerHTML = '';
+  sourceGrid.innerHTML = '';
+
+  try {
+    await runReal(topic);
+  } catch (err) {
+    // Backend not running/reachable — fall back to demo mode instead of a dead page.
+    logBody.innerHTML = '';
+    runDemo(topic);
+  }
+});
+</script>
+
+</body>
+</html>
