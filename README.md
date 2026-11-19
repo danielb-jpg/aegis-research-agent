@@ -1,67 +1,75 @@
 # Aegis Research Agent
 
-A research/summarizer agent — a real backend that searches the web and
-synthesizes a structured summary — paired with a polished dashboard
-frontend that streams the agent's progress live.
+A research/summarizer agent: a real backend that searches the web and synthesizes a structured summary, paired with a dashboard frontend that streams the agent's progress live.
 
-Runs entirely on **free tiers**: DuckDuckGo search (no key needed) +
-Google Gemini's free API tier (no card required).
+Runs entirely on **free tiers**: DuckDuckGo search (no key needed) + Google Gemini's free API tier (no card required).
 
-## How it works (the actual agent architecture)
+## Screenshots
 
-This is deliberately split into two separate steps, which is the real
-definition of an "agent" — an AI that uses a tool and reasons over what
-the tool returns, rather than one black-box call:
+**Live reasoning log:** the dashboard streams each step of the agent as it runs.
 
-1. **TOOL STEP** — plain Python code (`search_web` in `agent.py`) searches
-   the real web via DuckDuckGo. No AI involved here at all, just fetching.
-2. **REASONING STEP** — Gemini reads what was found and writes a
-   structured, grounded summary from it — told explicitly not to invent
-   facts beyond what the search returned.
+![Dashboard with the agent's live reasoning steps](aegis-research-agent/Screenshots/aegis-dashboard.png)
+
+**Structured summary:** Overview, Key Findings and a Confidence Note.
+
+![Structured summary](aegis-research-agent/Screenshots/aegis-summary.png)
+
+**Sources consulted:** each result is shown with its domain and a ranking score.
+
+![Sources consulted](aegis-research-agent/Screenshots/aegis-sources.png)
+
+## How it works
+
+The agent is split into two separate steps. An agent is an AI that uses a tool and reasons over what the tool returns, not one black-box call:
+
+1. **TOOL STEP**: plain Python code (`search_web` in `agent.py`) searches the real web via DuckDuckGo. No AI involved here, just fetching.
+2. **REASONING STEP**: Gemini reads what was found and writes a structured, grounded summary (Overview, Key Findings, Confidence Note). It is told explicitly not to invent facts beyond what the search returned.
+
+## Project structure
+
+```
+aegis-research-agent/
+├── backend/
+├── Screenshots/
+├── index.html
+└── start.bat
+```
 
 ## Setup
 
-1. Get a free Gemini API key (no card required) at
-   [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
-2. In the `backend/` folder:
+1. Get a free Gemini API key (no card required) at [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
+2. Open a terminal in the `aegis-research-agent/backend` folder and run:
+
    ```bash
    pip install -r requirements.txt
-   export GEMINI_API_KEY=your-key-here
+   ```
+
+   Set your key:
+
+   - Windows (Command Prompt): `set GEMINI_API_KEY=your-key-here`
+   - Windows (PowerShell): `$env:GEMINI_API_KEY="your-key-here"`
+   - Mac/Linux: `export GEMINI_API_KEY=your-key-here`
+
+   Then start the server:
+
+   ```bash
    python server.py
    ```
-3. Open `index.html` in your browser (it calls `http://localhost:5000`)
-4. Type a real topic, hit "Run Agent," and watch it actually search and reason
 
-## Known limitations (worth knowing, not hiding)
+3. Open `aegis-research-agent/index.html` in your browser (it calls `http://localhost:5000`)
+4. Type a topic, hit "Run Agent," and watch it search and reason
 
-- **DuckDuckGo search is unofficial** — there's no official API, so this
-  uses the `ddgs` library, which scrapes DuckDuckGo's own search pages.
-  It works well from a normal home/office internet connection. If you
-  later deploy this backend to a cloud host (Render, Railway, etc.),
-  DuckDuckGo has been known to rate-limit or block requests from
-  datacenter IP ranges specifically — this is a documented issue with
-  this approach, not a bug in this code. If that happens, options are:
-  switching to a paid search API (Google Custom Search, Tavily, Bing),
-  or adding retry/backoff and a fallback source.
-- **Gemini's free tier has rate limits** — historically quite low without
-  billing enabled (roughly 10 requests/minute on some models at time of
-  writing). Fine for building and demoing, not for real traffic. Check
-  your current limits in the AI Studio dashboard, since Google adjusts
-  these periodically.
-- **Trust scores are placeholder logic** (`_trust_score` in `agent.py`) —
-  based on result order, not a real credibility model. If you want this
-  to be genuinely meaningful, that's the piece to replace with real
-  domain-reputation signals.
-- **CORS is wide open** (`CORS(app)` with no restrictions) — fine for a
-  local demo, not fine to ship as-is to production.
-- **No rate limiting or auth** on the endpoint — add basic protection
-  before exposing this publicly.
-- The live search + Gemini call couldn't be tested end-to-end in the
-  environment this was built in (its own network is locked to a fixed
-  domain allowlist that doesn't include DuckDuckGo or Google's API) — the
-  code is correct against the current library APIs and was unit-tested
-  against mocked responses, but test it with your own key on a normal
-  connection before demoing it to anyone.
+## Known limitations
+
+- **DuckDuckGo search is unofficial.** There is no official API, so this uses the `ddgs` library, which scrapes DuckDuckGo's search pages. It works well from a normal home/office connection. If the backend is deployed to a cloud host (Render, Railway, etc.), DuckDuckGo may rate-limit or block datacenter IPs. Options then: a paid search API (Google Custom Search, Tavily, Bing), or retry/backoff with a fallback source.
+- **Gemini's free tier has rate limits.** They're low without billing enabled (roughly 10 requests/minute on some models at the time of writing). Fine for building and demoing, not for real traffic.
+- **The source scores are a ranking, not a credibility model.** `_trust_score` in `agent.py` is based on result order. The next step is replacing it with real domain-reputation signals.
+- **CORS is wide open** (`CORS(app)` with no restrictions). Fine for a local demo, not for production.
+- **No rate limiting or auth** on the endpoint. Add basic protection before exposing this publicly.
+
+## Testing
+
+Tested locally on Windows with a Gemini free-tier key: live DuckDuckGo search returned multiple sources and Gemini produced a grounded summary, as shown in the screenshots above.
 
 ## Stack
 
