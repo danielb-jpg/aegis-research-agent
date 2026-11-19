@@ -8,15 +8,15 @@ Runs entirely on **free tiers**: DuckDuckGo search (no key needed) + Google Gemi
 
 **Live reasoning log:** the dashboard streams each step of the agent as it runs.
 
-![Dashboard with the agent's live reasoning steps](aegis-research-agent/Screenshots/aegis-dashboard.png)
+![Dashboard with the agent's live reasoning steps](aegis-research-agent/Screenshots/dashboard.png)
 
 **Structured summary:** Overview, Key Findings and a Confidence Note.
 
-![Structured summary](aegis-research-agent/Screenshots/aegis-summary.png)
+![Structured summary](aegis-research-agent/Screenshots/summary.png)
 
 **Sources consulted:** each result is shown with its domain and a ranking score.
 
-![Sources consulted](aegis-research-agent/Screenshots/aegis-sources.png)
+![Sources consulted](aegis-research-agent/Screenshots/Summary1.PNG)
 
 ## How it works
 
